@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Body Tracking — ML Exploration</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Body Tracking — Raw ML Output</h1>
+        <p id="status">Initializing...</p>
+      </header>
+      <div id="viewport">
+        <video id="webcam" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div id="landmarks-panel">
+        <pre id="landmarks-data">— waiting for pose —</pre>
+      </div>
+      <div id="error" hidden></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
