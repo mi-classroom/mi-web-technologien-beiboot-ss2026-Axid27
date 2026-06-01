@@ -1,6 +1,10 @@
 import './style.css';
 import { PoseLandmarker, HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { PistolGesture } from './gestures/pistol';
+import type { GestureState } from './gestures/pistol';
+import { PointerGesture } from './gestures/pointer';
+import type { PointerState } from './gestures/pointer';
 
 const video = document.querySelector<HTMLVideoElement>('#webcam')!;
 const canvas = document.querySelector<HTMLCanvasElement>('#overlay')!;
@@ -163,6 +167,87 @@ function drawHands(
   ctx.shadowBlur = 0;
 }
 
+const pistolGesture  = new PistolGesture();
+const pointerGesture = new PointerGesture();
+
+type Point = { x: number; y: number };
+const strokes: Point[][] = [];
+let currentStroke: Point[] | null = null;
+
+function canvasPoint(pos: Point): Point {
+  return { x: (1 - pos.x) * canvas.width, y: pos.y * canvas.height };
+}
+
+function replayStrokes(): void {
+  ctx.strokeStyle = '#00e676';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const all = currentStroke ? [...strokes, currentStroke] : strokes;
+  for (const stroke of all) {
+    if (stroke.length < 2) continue;
+    ctx.beginPath();
+    ctx.moveTo(stroke[0].x, stroke[0].y);
+    for (let i = 1; i < stroke.length; i++) ctx.lineTo(stroke[i].x, stroke[i].y);
+    ctx.stroke();
+  }
+}
+
+function drawCursor(pos: Point, active: boolean): void {
+  const color = active ? '#00e676' : '#ffcc00';
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 6;
+  ctx.stroke();
+  ctx.fillStyle = active ? 'rgba(0,230,118,0.25)' : 'rgba(255,204,0,0.25)';
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawPointerHUD(state: PointerState): void {
+  if (state === 'idle') return;
+
+  const label = state === 'pointer_armed' ? 'Pointer wird aktiviert...' : 'Pointer Mode aktiv';
+  const color = state === 'pointer_armed' ? '#ffcc00' : '#00e676';
+  const pad   = 12;
+
+  ctx.font = 'bold 18px ui-monospace, monospace';
+  const textW = ctx.measureText(label).width;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(16, 70, textW + pad * 2, 44);
+
+  ctx.fillStyle = color;
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 4;
+  ctx.fillText(label, 16 + pad, 100);
+  ctx.shadowBlur = 0;
+}
+
+function drawGestureHUD(state: GestureState): void {
+  if (state === 'idle') return;
+
+  const label  = state === 'armed' ? 'Pistol Gesture erkannt' : 'Trigger: GO FORWARD';
+  const color  = state === 'armed' ? '#ffcc00' : '#00e676';
+  const pad    = 12;
+
+  ctx.font = 'bold 18px ui-monospace, monospace';
+  const textW = ctx.measureText(label).width;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(16, 16, textW + pad * 2, 44);
+
+  ctx.fillStyle = color;
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 4;
+  ctx.fillText(label, 16 + pad, 46);
+  ctx.shadowBlur = 0;
+}
+
 let panelTick = 0;
 
 function updatePanel(poseLandmarks: NormalizedLandmark[], handLandmarks: NormalizedLandmark[][]): void {
@@ -233,8 +318,34 @@ async function run(): Promise<void> {
       const poseDetected = poseResult.landmarks.length > 0;
       const handsDetected = handResult.landmarks.length > 0;
 
+      // Find each hand by handedness label for gesture detection.
+      let leftHandLandmarks:  NormalizedLandmark[] | null = null;
+      let rightHandLandmarks: NormalizedLandmark[] | null = null;
+      for (let i = 0; i < handResult.handedness.length; i++) {
+        const label = handResult.handedness[i]?.[0]?.categoryName;
+        if (label === 'Left')  leftHandLandmarks  = handResult.landmarks[i];
+        if (label === 'Right') rightHandLandmarks = handResult.landmarks[i];
+      }
+
+      const goForward  = pistolGesture.update(leftHandLandmarks);
+      if (goForward) console.log('[Gesture] GO_FORWARD');
+
+      const pointerPos = pointerGesture.update(leftHandLandmarks, rightHandLandmarks);
+      if (pointerGesture.state === 'drawing_active' && pointerPos !== null) {
+        const cp = canvasPoint(pointerPos);
+        if (currentStroke === null) currentStroke = [];
+        currentStroke.push(cp);
+      } else if (currentStroke !== null) {
+        if (currentStroke.length > 1) strokes.push(currentStroke);
+        currentStroke = null;
+      }
+
       if (poseDetected) drawSkeleton(poseResult.landmarks[0]);
       if (handsDetected) drawHands(handResult.landmarks, handResult.handedness);
+      replayStrokes();
+      drawGestureHUD(pistolGesture.state);
+      drawPointerHUD(pointerGesture.state);
+      if (pointerPos !== null) drawCursor(canvasPoint(pointerPos), pointerGesture.state === 'drawing_active');
 
       updatePanel(poseResult.landmarks[0] ?? [], handResult.landmarks);
 
