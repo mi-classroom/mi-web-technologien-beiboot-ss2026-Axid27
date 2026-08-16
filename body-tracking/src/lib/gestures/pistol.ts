@@ -1,4 +1,5 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import type { Gesture, GestureInput, GestureOutput } from '../types';
 
 export type GestureState = 'idle' | 'armed' | 'cooldown';
 
@@ -31,29 +32,31 @@ function hasBasePistolShape(lm: NormalizedLandmark[]): boolean {
 const STABILIZE_MS = 300;
 const COOLDOWN_MS  = 800;
 
-export class PistolGesture {
+export class PistolGesture implements Gesture {
   state: GestureState = 'idle';
   private gestureStart: number | null = null;
   private cooldownUntil = 0;
   private prevIndexExtended = true;
 
   /**
-   * Call once per frame with the left-hand landmarks, or null when the hand
-   * is not visible. Returns true exactly once per trigger event (GO_FORWARD).
+   * Call once per frame with the current gesture input. Reads the right-hand
+   * landmarks. Returns { triggered: true } exactly once per trigger event
+   * (GO_FORWARD).
    */
-  update(landmarks: NormalizedLandmark[] | null): boolean {
+  update(input: GestureInput): GestureOutput {
+    const landmarks = input.rightHand;
     const now = performance.now();
 
     if (this.state === 'cooldown') {
       if (now >= this.cooldownUntil) this.state = 'idle';
-      return false;
+      return { triggered: false };
     }
 
     if (landmarks === null || !hasBasePistolShape(landmarks)) {
       this.gestureStart = null;
       this.prevIndexExtended = true;
       this.state = 'idle';
-      return false;
+      return { triggered: false };
     }
 
     const indexExtended = isExtended(landmarks, INDEX.tip, INDEX.pip, INDEX.mcp);
@@ -61,11 +64,11 @@ export class PistolGesture {
     // Arming requires index to be extended first. If the hand is in base shape
     // but index is already curled, wait until the user raises the index finger.
     if (this.gestureStart === null) {
-      if (!indexExtended) return false;
+      if (!indexExtended) return { triggered: false };
       this.gestureStart = now;
     }
 
-    if (now - this.gestureStart < STABILIZE_MS) return false;
+    if (now - this.gestureStart < STABILIZE_MS) return { triggered: false };
 
     this.state = 'armed';
 
@@ -75,10 +78,10 @@ export class PistolGesture {
       this.cooldownUntil = now + COOLDOWN_MS;
       this.gestureStart = null;
       this.prevIndexExtended = true;
-      return true;
+      return { triggered: true };
     }
 
     this.prevIndexExtended = indexExtended;
-    return false;
+    return { triggered: false };
   }
 }

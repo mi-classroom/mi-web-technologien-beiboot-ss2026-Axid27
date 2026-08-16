@@ -1,10 +1,11 @@
 import './style.css';
 import { PoseLandmarker, HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
-import { PistolGesture } from './gestures/pistol';
-import type { GestureState } from './gestures/pistol';
-import { PointerGesture } from './gestures/pointer';
-import type { PointerState } from './gestures/pointer';
+import { PistolGesture } from './lib/gestures/pistol';
+import type { GestureState } from './lib/gestures/pistol';
+import { PointerGesture } from './lib/gestures/pointer';
+import type { PointerState } from './lib/gestures/pointer';
+import type { GestureInput } from './lib/types';
 
 const video = document.querySelector<HTMLVideoElement>('#webcam')!;
 const canvas = document.querySelector<HTMLCanvasElement>('#overlay')!;
@@ -327,10 +328,19 @@ async function run(): Promise<void> {
         if (label === 'Right') rightHandLandmarks = handResult.landmarks[i];
       }
 
-      const goForward  = pistolGesture.update(leftHandLandmarks);
-      if (goForward) console.log('[Gesture] GO_FORWARD');
+      // Provisional: GestureRecognizer wiring lands in Ticket 5.
+      const input: GestureInput = {
+        leftHand: leftHandLandmarks,
+        rightHand: rightHandLandmarks,
+        pose: poseResult.landmarks[0] ?? null,
+        timestamp,
+      };
 
-      const pointerPos = pointerGesture.update(leftHandLandmarks, rightHandLandmarks);
+      const goForwardOutput = pistolGesture.update(input);
+      if (goForwardOutput.triggered) console.log('[Gesture] GO_FORWARD');
+
+      const pointerOutput = pointerGesture.update(input);
+      const pointerPos = pointerOutput.position ?? null;
       if (pointerGesture.state === 'drawing_active' && pointerPos !== null) {
         const cp = canvasPoint(pointerPos);
         if (currentStroke === null) currentStroke = [];
