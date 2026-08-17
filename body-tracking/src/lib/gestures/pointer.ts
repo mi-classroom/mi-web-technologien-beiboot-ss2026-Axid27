@@ -1,4 +1,5 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import type { Gesture, GestureInput, GestureOutput } from '../types';
 
 export type PointerState = 'idle' | 'pointer_armed' | 'drawing_active';
 
@@ -24,7 +25,7 @@ function isPointerShape(lm: NormalizedLandmark[]): boolean {
   );
 }
 
-export class PointerGesture {
+export class PointerGesture implements Gesture {
   state: PointerState = 'idle';
   private armedSince: number | null = null;
   private smoothX = 0;
@@ -32,14 +33,13 @@ export class PointerGesture {
   private positionInitialized = false;
 
   /**
-   * Call once per frame with both hand landmarks (null if not detected).
-   * Returns EMA-smoothed normalized position of the right index tip when
-   * pointer_armed or drawing_active, null when idle.
+   * Call once per frame with the current gesture input. Reads both hand
+   * landmarks. Returns an EMA-smoothed normalized position of the right
+   * index tip when pointer_armed or drawing_active, no position when idle.
    */
-  update(
-    leftLandmarks: NormalizedLandmark[] | null,
-    rightLandmarks: NormalizedLandmark[] | null,
-  ): { x: number; y: number } | null {
+  update(input: GestureInput): GestureOutput {
+    const leftLandmarks = input.leftHand;
+    const rightLandmarks = input.rightHand;
     const now = performance.now();
 
     const bothExtended =
@@ -50,7 +50,7 @@ export class PointerGesture {
       this.armedSince = null;
       this.positionInitialized = false;
       this.state = 'idle';
-      return null;
+      return { triggered: false };
     }
 
     if (this.armedSince === null) this.armedSince = now;
@@ -67,6 +67,6 @@ export class PointerGesture {
       this.smoothY = EMA_ALPHA * tip.y + (1 - EMA_ALPHA) * this.smoothY;
     }
 
-    return { x: this.smoothX, y: this.smoothY };
+    return { triggered: false, position: { x: this.smoothX, y: this.smoothY } };
   }
 }

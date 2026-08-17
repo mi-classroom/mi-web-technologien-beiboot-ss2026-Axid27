@@ -1,10 +1,15 @@
 import './style.css';
 import { PoseLandmarker, HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
-import { PistolGesture } from './gestures/pistol';
-import type { GestureState } from './gestures/pistol';
-import { PointerGesture } from './gestures/pointer';
-import type { PointerState } from './gestures/pointer';
+import { GestureRecognizer } from './lib/GestureRecognizer';
+import { PistolGesture } from './lib/gestures/pistol';
+import type { GestureState } from './lib/gestures/pistol';
+import { PistolGestureLeft } from './lib/gestures/pistolLeft';
+import { PointerGesture } from './lib/gestures/pointer';
+import type { PointerState } from './lib/gestures/pointer';
+import { ZoomGesture } from './lib/gestures/zoom';
+import type { ZoomState } from './lib/gestures/zoom';
+import type { GestureInput } from './lib/types';
 
 const video = document.querySelector<HTMLVideoElement>('#webcam')!;
 const canvas = document.querySelector<HTMLCanvasElement>('#overlay')!;
@@ -167,8 +172,11 @@ function drawHands(
   ctx.shadowBlur = 0;
 }
 
-const pistolGesture  = new PistolGesture();
-const pointerGesture = new PointerGesture();
+const recognizer = new GestureRecognizer();
+recognizer.register('go-forward', new PistolGesture());
+recognizer.register('go-back',    new PistolGestureLeft());
+recognizer.register('pointer',    new PointerGesture());
+recognizer.register('zoom',       new ZoomGesture());
 
 type Point = { x: number; y: number };
 const strokes: Point[][] = [];
@@ -245,6 +253,20 @@ function drawGestureHUD(state: GestureState): void {
   ctx.shadowColor = '#000';
   ctx.shadowBlur = 4;
   ctx.fillText(label, 16 + pad, 46);
+  ctx.shadowBlur = 0;
+}
+
+function drawZoomHUD(state: ZoomState): void {
+  if (state === 'idle') return;
+
+  const label = state === 'zoom_armed' ? 'Zoom wird aktiviert...' : 'Trigger: ZOOM';
+  const color = state === 'zoom_armed' ? '#ffcc00' : '#00e676';
+
+  ctx.font = 'bold 18px ui-monospace, monospace';
+  ctx.fillStyle = color;
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 4;
+  ctx.fillText(label, 16, 130);
   ctx.shadowBlur = 0;
 }
 
@@ -327,15 +349,40 @@ async function run(): Promise<void> {
         if (label === 'Right') rightHandLandmarks = handResult.landmarks[i];
       }
 
-      const goForward  = pistolGesture.update(leftHandLandmarks);
-      if (goForward) console.log('[Gesture] GO_FORWARD');
+      const input: GestureInput = {
+        leftHand: leftHandLandmarks,
+        rightHand: rightHandLandmarks,
+        pose: poseResult.landmarks[0] ?? null,
+        timestamp,
+      };
 
-      const pointerPos = pointerGesture.update(leftHandLandmarks, rightHandLandmarks);
-      if (pointerGesture.state === 'drawing_active' && pointerPos !== null) {
-        const cp = canvasPoint(pointerPos);
-        if (currentStroke === null) currentStroke = [];
-        currentStroke.push(cp);
-      } else if (currentStroke !== null) {
+      const events = recognizer.update(input);
+
+      let pointerPos: { x: number; y: number } | null = null;
+      let pointerActiveThisFrame = false;
+
+      for (const event of events) {
+        if (event.name === 'go-forward' && event.output.triggered) {
+          console.log('[Gesture] GO_FORWARD');
+        }
+        if (event.name === 'go-back' && event.output.triggered) {
+          console.log('[Gesture] GO_BACK');
+        }
+        if (event.name === 'pointer' && event.output.position) {
+          pointerActiveThisFrame = true;
+          pointerPos = event.output.position;
+          if (recognizer.getState('pointer') === 'drawing_active') {
+            const cp = canvasPoint(pointerPos);
+            if (currentStroke === null) currentStroke = [];
+            currentStroke.push(cp);
+          }
+        }
+        if (event.name === 'zoom' && event.output.triggered) {
+          console.log('[Gesture] ZOOM — factor:', event.output.value);
+        }
+      }
+
+      if (!pointerActiveThisFrame && currentStroke !== null) {
         if (currentStroke.length > 1) strokes.push(currentStroke);
         currentStroke = null;
       }
@@ -343,9 +390,10 @@ async function run(): Promise<void> {
       if (poseDetected) drawSkeleton(poseResult.landmarks[0]);
       if (handsDetected) drawHands(handResult.landmarks, handResult.handedness);
       replayStrokes();
-      drawGestureHUD(pistolGesture.state);
-      drawPointerHUD(pointerGesture.state);
-      if (pointerPos !== null) drawCursor(canvasPoint(pointerPos), pointerGesture.state === 'drawing_active');
+      drawGestureHUD(recognizer.getState('go-forward') as GestureState);
+      drawPointerHUD(recognizer.getState('pointer') as PointerState);
+      drawZoomHUD(recognizer.getState('zoom') as ZoomState);
+      if (pointerPos !== null) drawCursor(canvasPoint(pointerPos), recognizer.getState('pointer') === 'drawing_active');
 
       updatePanel(poseResult.landmarks[0] ?? [], handResult.landmarks);
 
