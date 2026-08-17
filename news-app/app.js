@@ -1,44 +1,33 @@
 import { PoseLandmarker, HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { GestureRecognizer } from '../body-tracking/src/lib/GestureRecognizer';
-import { PistolGesture } from '../body-tracking/src/lib/gestures/pistol';
-import { PistolGestureLeft } from '../body-tracking/src/lib/gestures/pistolLeft';
 import { PointerGesture } from '../body-tracking/src/lib/gestures/pointer';
 import { ZoomGesture } from '../body-tracking/src/lib/gestures/zoom';
+import { ScrollGesture } from '../body-tracking/src/lib/gestures/scroll';
+import { ToggleGesture } from '../body-tracking/src/lib/gestures/toggle';
 
 const recognizer = new GestureRecognizer();
-recognizer.register('go-forward', new PistolGesture());
-recognizer.register('go-back',    new PistolGestureLeft());
-recognizer.register('pointer',    new PointerGesture());
-recognizer.register('zoom',       new ZoomGesture());
+recognizer.register('pointer', new PointerGesture());
+recognizer.register('zoom',    new ZoomGesture());
+recognizer.register('scroll',  new ScrollGesture());
+recognizer.register('toggle',  new ToggleGesture());
 
 const cursor = document.getElementById('gesture-cursor');
 
-// Tracks the currently focused tabbable element by index, mirroring
-// Tab / Shift+Tab navigation.
-let focusIndex = -1;
+// Gesture control start state: active. Toggled via the ToggleGesture
+// (both hands open, held 2s).
+let gestureActive = true;
 
-function getTabbable() {
-  return Array.from(document.querySelectorAll('a, button, [tabindex="0"]'));
+// Full status UI (dot/label/flash) is implemented in Ticket 5.
+function updateToggleUI(active) {
+  console.log('[news-app] gestureActive:', active);
 }
 
-function focusNext() {
-  const tabbable = getTabbable();
-  if (tabbable.length === 0) return;
-  focusIndex = (focusIndex + 1) % tabbable.length;
-  tabbable[focusIndex].focus();
-}
-
-function focusPrevious() {
-  const tabbable = getTabbable();
-  if (tabbable.length === 0) return;
-  focusIndex = (focusIndex - 1 + tabbable.length) % tabbable.length;
-  tabbable[focusIndex].focus();
-}
-
+// go-forward/go-back were removed in Issue #5 (Ticket 4) — focus now comes
+// from native keyboard/mouse interaction; the OK gesture only confirms
+// whatever currently has focus.
 function activateFocused() {
-  const tabbable = getTabbable();
-  const el = tabbable[focusIndex];
-  if (el) el.click();
+  const el = document.activeElement;
+  if (el && el !== document.body) el.click();
 }
 
 async function initModels() {
@@ -122,12 +111,14 @@ async function run() {
       let zoomActiveThisFrame = false;
 
       for (const event of events) {
-        if (event.name === 'go-forward') {
-          focusNext();
+        if (event.name === 'toggle') {
+          gestureActive = !gestureActive;
+          updateToggleUI(gestureActive);
+          continue;
         }
-        if (event.name === 'go-back') {
-          focusPrevious();
-        }
+
+        if (!gestureActive) continue;
+
         if (event.name === 'zoom') {
           zoomActiveThisFrame = true;
           if (!zoomWasActive) activateFocused();
@@ -135,6 +126,19 @@ async function run() {
       }
 
       zoomWasActive = zoomActiveThisFrame;
+
+      // Scroll is continuous stream data (never triggered: true), poll via
+      // getOutput() rather than the events array.
+      const scrollOutput = recognizer.getOutput('scroll');
+      if (gestureActive && scrollOutput?.value !== undefined && scrollOutput.value !== 0) {
+        const scrollSpeed = 8; // pixels per frame — tune after testing
+        window.scrollBy(0, scrollOutput.value * scrollSpeed);
+      }
+
+      // Toggle progress: recognizer.getOutput('toggle') already returns
+      // { triggered: false, value: progress } during the toggle_armed hold,
+      // since lastOutputs is updated every frame regardless of the
+      // triggered flag. Progress-bar UI wiring lands in Ticket 5.
 
       // Pointer position is continuous stream data, not a discrete trigger —
       // poll it via getOutput() rather than looking for it in events.
