@@ -35,7 +35,7 @@ liegt als einzelne `.ts`-Datei vor (`GestureRecognizer.ts`,
 Quellcode existiert — kein kompiliertes Browser-Bundle, kein
 `package.json`-Eintrag, der eine Nutzung außerhalb von `body-tracking/`
 vorsieht.
-Auswirkung: `news-app/` sollte laut Ticket 1 eine rein statische Seite
+Auswirkung: `news-app/` sollte erst eine rein statische Seite
 ohne Build-Step sein. Um die Library trotzdem zu nutzen, musste
 `news-app/` zu einem eigenen Vite-Projekt mit eigener `package.json`
 und `vite.config.js` (inkl. `server.fs.allow`) ausgebaut werden — nur
@@ -64,18 +64,54 @@ Auswirkung/Lösung: `news-app/app.js` trackt selbst den Vorframe-Zustand
 wurde nicht geändert — das Problem ist rein dokumentarisch/konzeptionell
 und beträfe jede neue Geste mit kontinuierlichem Trigger-Verhalten.
 
-## Änderungen an der Library
-Keine. Alle drei Probleme wurden ausschließlich in `news-app/`
-kompensiert (Koordinaten-Spiegelung, Vite-Workaround, Flanken-Erkennung).
+### Problem 4: `update()` vermischt diskrete Events und kontinuierliche Stream-Daten
+Beschreibung: `GestureRecognizer.update()` gab bisher ein `GestureEvent[]`
+zurück, das sowohl echte, einmalige Trigger (`go-forward`) als auch
+kontinuierliche, pro Frame aktualisierte Stream-Daten (`pointer.position`)
+im selben Array mischte — unterscheidbar nur daran, welches optionale
+Feld (`triggered`, `position`, `value`) auf dem `GestureOutput` gerade
+gesetzt war. Der Konsument musste raten bzw. den Quellcode lesen, um zu
+verstehen, dass ein "Event" mit `position` eigentlich kein Event im
+Sinne von "etwas ist passiert" ist, sondern ein Polling-Wert.
+Auswirkung: Der Code zum Lesen der Pointer-Position
+(`if (event.name === 'pointer' && event.output.position) { ... }`)
+funktionierte, wirkte aber konzeptionell falsch — ein "Event" mit einer
+kontinuierlichen Position ist für Konsumenten der Library unintuitiv und
+verleitet dazu, Positions-Handling versehentlich an Event-Handling-Logik
+(z. B. Debouncing) zu koppeln, die dafür nicht gedacht ist.
+Lösung (diesmal **in der Library**, nicht nur im Konsumenten):
+`GestureRecognizer` trennt jetzt beide Konzepte:
+- `update(input)` gibt nur noch echte Trigger-Events zurück
+  (`output.triggered === true`).
+- Neue Methode `getOutput(name): GestureOutput | null` liefert den
+  zuletzt berechneten Output einer Geste zum Pollen — parallel zur
+  bereits bestehenden `getState()`.
 
-Begründung: Die API war in ihrer aktuellen Form funktional ausreichend
-— `Gesture`, `GestureInput`, `GestureOutput`, `GestureRecognizer` boten
-alle nötigen Daten und Erweiterungspunkte, um `news-app/` ohne
-Änderungen an `src/lib/` umzusetzen. Das bestätigt, dass das in
-ADR-03/ADR-04 gewählte Design (Registry + einheitlicher Input-Contract)
-strukturell trägt. Die gefundenen Probleme sind keine strukturellen
-Mängel, sondern fehlende Dokumentation und fehlende Konsistenz-Garantien
-zwischen einzelnen Gesten-Implementierungen.
+  Konsumenten lesen die Pointer-Position jetzt so:
+  ```ts
+  const events = recognizer.update(input);          // nur Trigger
+  const position = recognizer.getOutput('pointer')?.position; // Stream
+  ```
+  `body-tracking/src/main.ts` und `news-app/app.js` wurden entsprechend
+  angepasst.
+
+## Änderungen an der Library
+Für Problem 4 ja — `GestureRecognizer.update()`/`getOutput()` wie oben
+beschrieben. Für die Probleme 1–3 keine; diese wurden ausschließlich in
+`news-app/` kompensiert (Koordinaten-Spiegelung, Vite-Workaround,
+Flanken-Erkennung) und bleiben als offene, dokumentierte API-Schwächen
+bestehen.
+
+Begründung: Für Problem 4 war eine reine Konsumenten-seitige Umgehung
+nicht sinnvoll möglich — das Problem liegt strukturell in der Rückgabeform
+von `update()` selbst, nicht in der Auswertung durch den Konsumenten.
+Für die Probleme 1–3 reichte die bestehende API funktional aus (alle
+nötigen Daten waren vorhanden), sodass ein Fix in der Library dort nicht
+zwingend nötig war. Das bestätigt insgesamt, dass das in ADR-03/ADR-04
+gewählte Grunddesign (Registry + einheitlicher Input-Contract) trägt —
+die gefundenen Probleme betreffen Dokumentation, Konsistenz zwischen
+Gesten-Implementierungen und, im Fall von Problem 4, eine einzelne, klar
+abgegrenzte Design-Entscheidung in `GestureRecognizer`.
 
 ## Erkenntnisse für zukünftige Issues
 - **Koordinaten-Konvention dokumentieren**: JSDoc an `GestureOutput.position`
@@ -96,3 +132,9 @@ zwischen einzelnen Gesten-Implementierungen.
   lohnt sich die Überlegung, ob die Library einen optionalen Helper für
   Kamera- und Modell-Setup anbieten sollte, statt dass jeder Konsument das
   Boilerplate dupliziert.
+- **Event/Stream-Trennung ist jetzt Präzedenzfall**: Problem 4 wurde
+  direkt in der Library gelöst (`update()` + `getOutput()`), statt es nur
+  zu dokumentieren. Für Issue #5 sollte jede neue Geste von vornherein
+  klar einordnen, ob sie ein diskretes Trigger-Event oder kontinuierliche
+  Stream-Daten liefert, statt beides über dieselben `GestureOutput`-Felder
+  zu vermischen.

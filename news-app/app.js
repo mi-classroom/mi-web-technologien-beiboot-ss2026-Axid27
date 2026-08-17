@@ -120,35 +120,39 @@ async function run() {
 
       const events = recognizer.update(input);
       let zoomActiveThisFrame = false;
-      let pointerActiveThisFrame = false;
 
       for (const event of events) {
-        if (event.name === 'go-forward' && event.output.triggered) {
+        if (event.name === 'go-forward') {
           focusNext();
         }
-        if (event.name === 'go-back' && event.output.triggered) {
+        if (event.name === 'go-back') {
           focusPrevious();
         }
-        if (event.name === 'zoom' && event.output.triggered) {
+        if (event.name === 'zoom') {
           zoomActiveThisFrame = true;
           if (!zoomWasActive) activateFocused();
-        }
-        if (event.name === 'pointer' && event.output.position) {
-          pointerActiveThisFrame = true;
-          const { x, y } = event.output.position;
-          // position.x/y are raw MediaPipe coordinates (normalized, NOT
-          // mirrored) — the library does no mirroring itself. body-tracking's
-          // main.ts mirrors x for its mirrored camera preview via its own
-          // canvasPoint() helper; we do the same here so the cursor moves
-          // the way a mirror-view user expects (hand right -> cursor right).
-          cursor.style.left = `${(1 - x) * window.innerWidth}px`;
-          cursor.style.top = `${y * window.innerHeight}px`;
-          cursor.style.opacity = '1';
         }
       }
 
       zoomWasActive = zoomActiveThisFrame;
-      if (!pointerActiveThisFrame) cursor.style.opacity = '0';
+
+      // Pointer position is continuous stream data, not a discrete trigger —
+      // poll it via getOutput() rather than looking for it in events.
+      const pointerPosition = recognizer.getOutput('pointer')?.position ?? null;
+
+      if (pointerPosition !== null) {
+        const { x, y } = pointerPosition;
+        // position.x/y are raw MediaPipe coordinates (normalized, NOT
+        // mirrored) — the library does no mirroring itself. body-tracking's
+        // main.ts mirrors x for its mirrored camera preview via its own
+        // canvasPoint() helper; we do the same here so the cursor moves
+        // the way a mirror-view user expects (hand right -> cursor right).
+        cursor.style.left = `${(1 - x) * window.innerWidth}px`;
+        cursor.style.top = `${y * window.innerHeight}px`;
+        cursor.style.opacity = '1';
+      } else {
+        cursor.style.opacity = '0';
+      }
     }
 
     requestAnimationFrame(detect);
