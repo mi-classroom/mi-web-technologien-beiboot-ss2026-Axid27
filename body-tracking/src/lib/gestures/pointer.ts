@@ -12,7 +12,7 @@ const MIDDLE = { tip: 12, pip: 10, mcp: 9  } as const;
 const RING   = { tip: 16, pip: 14, mcp: 13 } as const;
 const PINKY  = { tip: 20, pip: 18, mcp: 17 } as const;
 const STABILIZE_MS = 300;
-const EMA_ALPHA = 0.35; // lower = smoother but more lag
+const EMA_ALPHA = 0.6; // lower = smoother but more lag; raised for a more responsive cursor
 
 function isExtended(lm: NormalizedLandmark[], tip: number, pip: number, mcp: number): boolean {
   return lm[tip].y < lm[pip].y && lm[pip].y < lm[mcp].y;

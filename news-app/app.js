@@ -33,6 +33,13 @@ function getTabbable() {
   return Array.from(document.querySelectorAll('a, button, [tabindex="0"]'));
 }
 
+// Point-to-select: find the tabbable element (if any) under a screen point,
+// so the pointer cursor can drive focus directly instead of only Tab/click.
+function getTabbableAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el ? el.closest('a, button, [tabindex="0"]') : null;
+}
+
 // go-forward/go-back were removed in Issue #5 (Ticket 4) — focus now comes
 // from native keyboard/mouse interaction; the OK gesture confirms whatever
 // currently has focus, or focuses the first tabbable element if nothing is
@@ -195,9 +202,24 @@ async function run() {
         // main.ts mirrors x for its mirrored camera preview via its own
         // canvasPoint() helper; we do the same here so the cursor moves
         // the way a mirror-view user expects (hand right -> cursor right).
-        cursor.style.left = `${(1 - x) * window.innerWidth}px`;
-        cursor.style.top = `${y * window.innerHeight}px`;
+        const screenX = (1 - x) * window.innerWidth;
+        const screenY = y * window.innerHeight;
+
+        cursor.style.left = `${screenX}px`;
+        cursor.style.top = `${screenY}px`;
         cursor.style.opacity = '1';
+
+        // Point-to-select: focus whatever the cursor is currently hovering,
+        // so the OK gesture (which clicks document.activeElement) activates
+        // the pointed-at element, not just the last Tab/click-focused one.
+        // Gated on gestureActive so pausing gesture control also stops it
+        // from stealing keyboard focus.
+        if (gestureActive) {
+          const hovered = getTabbableAt(screenX, screenY);
+          if (hovered && hovered !== document.activeElement) {
+            hovered.focus({ preventScroll: true });
+          }
+        }
       } else {
         cursor.style.opacity = '0';
       }
