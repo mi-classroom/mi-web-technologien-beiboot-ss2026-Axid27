@@ -42,7 +42,7 @@ const COOLDOWN_MS  = 800;
 
 export class PistolGestureLeft implements Gesture {
   // Intentional duplication over inheritance.
-  // See docs/adr/003-gesture-duplication.md
+  // See docs/adr/ADR-05-gesture-duplication.md
 
   state: GestureState = 'idle';
   private gestureStart: number | null = null;
