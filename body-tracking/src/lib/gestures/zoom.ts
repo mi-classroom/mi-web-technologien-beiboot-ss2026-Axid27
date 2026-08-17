@@ -1,13 +1,14 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import type { Gesture, GestureInput, GestureOutput } from '../types';
 
-// Landmarks used: lm[4] (thumb tip) and lm[8] (index tip) form the "circle" —
-// their distance is checked against CIRCLE_THRESHOLD. Middle/ring/pinky
-// tip/pip/mcp are used to confirm those fingers are folded (not extended),
-// so an open hand isn't mistaken for the zoom circle.
+// Gesture: left hand OK-sign — thumb tip (lm[4]) and index tip (lm[8]) touch
+// (small distance), while middle, ring, and pinky are extended. Landmarks
+// used: lm[4]/lm[8] for the touch distance, plus tip/pip/mcp for middle,
+// ring, and pinky to confirm they're extended.
 //
-// CIRCLE_THRESHOLD is in normalized landmark units (0.0–1.0, fraction of
-// frame width/height), matching MediaPipe's NormalizedLandmark coordinates.
+// TOUCH_THRESHOLD is the normalized distance between lm[4] and lm[8]
+// (0.0–1.0, fraction of frame width/height), matching MediaPipe's
+// NormalizedLandmark coordinates.
 //
 // value: 1.0 in the output is a placeholder for "100% zoom" — there is no
 // continuous zoom factor yet.
@@ -20,7 +21,7 @@ const MIDDLE = { tip: 12, pip: 10, mcp: 9  } as const;
 const RING   = { tip: 16, pip: 14, mcp: 13 } as const;
 const PINKY  = { tip: 20, pip: 18, mcp: 17 } as const;
 
-const CIRCLE_THRESHOLD = 0.06;
+const TOUCH_THRESHOLD = 0.06;
 const STABILIZE_MS = 400;
 
 // Assumes upright hand orientation — see docs/observations/gesture-2d-landmark-assumptions.md
@@ -32,13 +33,13 @@ function distance(a: NormalizedLandmark, b: NormalizedLandmark): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-// Base shape: thumb tip and index tip close together (circle), other fingers folded.
-function isZoomCircleShape(lm: NormalizedLandmark[]): boolean {
+// OK-sign shape: thumb tip and index tip touching, other fingers extended.
+function isOkShape(lm: NormalizedLandmark[]): boolean {
   return (
-    distance(lm[4], lm[8]) < CIRCLE_THRESHOLD &&
-    !isExtended(lm, MIDDLE.tip, MIDDLE.pip, MIDDLE.mcp) &&
-    !isExtended(lm, RING.tip,   RING.pip,   RING.mcp) &&
-    !isExtended(lm, PINKY.tip,  PINKY.pip,  PINKY.mcp)
+    distance(lm[4], lm[8]) < TOUCH_THRESHOLD &&
+    isExtended(lm, MIDDLE.tip, MIDDLE.pip, MIDDLE.mcp) &&
+    isExtended(lm, RING.tip,   RING.pip,   RING.mcp) &&
+    isExtended(lm, PINKY.tip,  PINKY.pip,  PINKY.mcp)
   );
 }
 
@@ -48,14 +49,14 @@ export class ZoomGesture implements Gesture {
 
   /**
    * Call once per frame with the current gesture input. Reads the left-hand
-   * landmarks. Returns { triggered: true, value: 1.0 } while the zoom circle
-   * is held stably, { triggered: false } otherwise.
+   * landmarks. Returns { triggered: true, value: 1.0 } while the OK-sign is
+   * held stably, { triggered: false } otherwise.
    */
   update(input: GestureInput): GestureOutput {
     const landmarks = input.leftHand;
     const now = performance.now();
 
-    if (landmarks === null || !isZoomCircleShape(landmarks)) {
+    if (landmarks === null || !isOkShape(landmarks)) {
       this.armedSince = null;
       this.state = 'idle';
       return { triggered: false };

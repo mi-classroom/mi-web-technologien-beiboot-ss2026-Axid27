@@ -1,6 +1,13 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import type { Gesture, GestureInput, GestureOutput } from '../types';
 
+// Gesture: left hand with thumb and index finger extended, middle/ring/pinky
+// folded (GO_BACK). Landmarks used: lm[4]/lm[2] (thumb tip/mcp), lm[8]/lm[6]/lm[5]
+// (index tip/pip/mcp), plus tip/pip/mcp for middle, ring, and pinky.
+// Index-extended is tracked separately below (not inside hasBackGestureShape)
+// so that curling it — the trigger action — doesn't immediately break the
+// shape gate; see hasBackGestureShape and the arming check in update().
+
 export type GestureState = 'idle' | 'armed' | 'cooldown';
 
 // Landmark index groups per finger.
@@ -14,15 +21,16 @@ function isExtended(lm: NormalizedLandmark[], tip: number, pip: number, mcp: num
   return lm[tip].y < lm[pip].y && lm[pip].y < lm[mcp].y;
 }
 
-function isThumbUp(lm: NormalizedLandmark[]): boolean {
+function isThumbExtended(lm: NormalizedLandmark[]): boolean {
   return lm[4].y < lm[2].y;
 }
 
-// Base shape: thumb up + non-trigger fingers folded. Index is checked separately
-// so that curling it (the trigger action) doesn't immediately break the gesture.
-function hasBasePistolShape(lm: NormalizedLandmark[]): boolean {
+// Base shape: thumb extended + non-trigger fingers folded. Index is checked
+// separately so that curling it (the trigger action) doesn't immediately
+// break the gesture.
+function hasBackGestureShape(lm: NormalizedLandmark[]): boolean {
   return (
-    isThumbUp(lm) &&
+    isThumbExtended(lm) &&
     !isExtended(lm, MIDDLE.tip, MIDDLE.pip, MIDDLE.mcp) &&
     !isExtended(lm, RING.tip,   RING.pip,   RING.mcp) &&
     !isExtended(lm, PINKY.tip,  PINKY.pip,  PINKY.mcp)
@@ -55,7 +63,7 @@ export class PistolGestureLeft implements Gesture {
       return { triggered: false };
     }
 
-    if (landmarks === null || !hasBasePistolShape(landmarks)) {
+    if (landmarks === null || !hasBackGestureShape(landmarks)) {
       this.gestureStart = null;
       this.prevIndexExtended = true;
       this.state = 'idle';
