@@ -11,6 +11,8 @@ recognizer.register('go-back',    new PistolGestureLeft());
 recognizer.register('pointer',    new PointerGesture());
 recognizer.register('zoom',       new ZoomGesture());
 
+const cursor = document.getElementById('gesture-cursor');
+
 // Tracks the currently focused tabbable element by index, mirroring
 // Tab / Shift+Tab navigation.
 let focusIndex = -1;
@@ -118,6 +120,7 @@ async function run() {
 
       const events = recognizer.update(input);
       let zoomActiveThisFrame = false;
+      let pointerActiveThisFrame = false;
 
       for (const event of events) {
         if (event.name === 'go-forward' && event.output.triggered) {
@@ -131,11 +134,21 @@ async function run() {
           if (!zoomWasActive) activateFocused();
         }
         if (event.name === 'pointer' && event.output.position) {
-          // Visueller Cursor — siehe Ticket 3.
+          pointerActiveThisFrame = true;
+          const { x, y } = event.output.position;
+          // position.x/y are raw MediaPipe coordinates (normalized, NOT
+          // mirrored) — the library does no mirroring itself. body-tracking's
+          // main.ts mirrors x for its mirrored camera preview via its own
+          // canvasPoint() helper; we do the same here so the cursor moves
+          // the way a mirror-view user expects (hand right -> cursor right).
+          cursor.style.left = `${(1 - x) * window.innerWidth}px`;
+          cursor.style.top = `${y * window.innerHeight}px`;
+          cursor.style.opacity = '1';
         }
       }
 
       zoomWasActive = zoomActiveThisFrame;
+      if (!pointerActiveThisFrame) cursor.style.opacity = '0';
     }
 
     requestAnimationFrame(detect);

@@ -4,6 +4,7 @@
   --text: #e8e9ec;
   --text-muted: #9a9ea6;
   --accent: #5eb1ff;
+  --accent-rgb: 94, 177, 255;
   --focus-outline: #ffd166;
 }
 
@@ -128,4 +129,18 @@ button {
   color: var(--text-muted);
   font-size: 0.85rem;
   border-top: 1px solid #2a2e35;
+}
+
+#gesture-cursor {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: rgba(var(--accent-rgb), 0.2);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s;
+  opacity: 0;
+  z-index: 9999;
 }
