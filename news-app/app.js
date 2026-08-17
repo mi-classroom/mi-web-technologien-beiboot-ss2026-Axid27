@@ -33,6 +33,18 @@ function getTabbable() {
   return Array.from(document.querySelectorAll('a, button, [tabindex="0"]'));
 }
 
+// Amplifies a normalized (0.0-1.0) coordinate around its center (0.5) so a
+// smaller hand movement covers the full screen — a "mouse sensitivity"
+// style gain, applied here rather than in PointerGesture since it's a
+// screen-mapping concern specific to this consumer, not a property of the
+// hand-tracking data itself.
+const POINTER_SENSITIVITY = 2.2;
+
+function applySensitivity(value, sensitivity) {
+  const amplified = 0.5 + (value - 0.5) * sensitivity;
+  return Math.min(1, Math.max(0, amplified));
+}
+
 // Point-to-select: find the tabbable element (if any) under a screen point,
 // so the pointer cursor can drive focus directly instead of only Tab/click.
 function getTabbableAt(x, y) {
@@ -202,8 +214,12 @@ async function run() {
         // main.ts mirrors x for its mirrored camera preview via its own
         // canvasPoint() helper; we do the same here so the cursor moves
         // the way a mirror-view user expects (hand right -> cursor right).
-        const screenX = (1 - x) * window.innerWidth;
-        const screenY = y * window.innerHeight;
+        // Sensitivity is applied before mirroring/mapping — symmetric
+        // amplification around 0.5 commutes with the (1 - x) mirror.
+        const ampX = applySensitivity(x, POINTER_SENSITIVITY);
+        const ampY = applySensitivity(y, POINTER_SENSITIVITY);
+        const screenX = (1 - ampX) * window.innerWidth;
+        const screenY = ampY * window.innerHeight;
 
         cursor.style.left = `${screenX}px`;
         cursor.style.top = `${screenY}px`;

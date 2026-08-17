@@ -27,10 +27,10 @@ const MIDDLE = { tip: 12, pip: 10, mcp: 9  } as const;
 const RING   = { tip: 16, pip: 14, mcp: 13 } as const;
 const PINKY  = { tip: 20, pip: 18, mcp: 17 } as const;
 
-const STABILIZE_MS = 400;
+const STABILIZE_MS = 300;
 const DEAD_ZONE = 0.1;
 const MAX_SPEED = 1.0;
-const MAX_OFFSET = 0.4; // normalized offset from center treated as full speed
+const MAX_OFFSET = 0.2; // normalized offset from center treated as full speed — lower = less hand movement needed
 
 function isExtended(lm: NormalizedLandmark[], tip: number, pip: number, mcp: number): boolean {
   return lm[tip].y < lm[pip].y && lm[pip].y < lm[mcp].y;
