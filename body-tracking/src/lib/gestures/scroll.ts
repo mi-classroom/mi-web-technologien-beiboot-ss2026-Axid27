@@ -36,8 +36,11 @@ function isExtended(lm: NormalizedLandmark[], tip: number, pip: number, mcp: num
   return lm[tip].y < lm[pip].y && lm[pip].y < lm[mcp].y;
 }
 
+// Same monotonic tip->ip->mcp check as the other fingers (previously only
+// checked tip vs. mcp, which let a half-curled thumb still count as
+// "extended"), for a stricter, more natural fully-open-hand requirement.
 function isThumbExtended(lm: NormalizedLandmark[]): boolean {
-  return lm[4].y < lm[2].y;
+  return lm[4].y < lm[3].y && lm[3].y < lm[2].y;
 }
 
 function clamp(value: number, min: number, max: number): number {
