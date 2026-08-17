@@ -358,31 +358,27 @@ async function run(): Promise<void> {
 
       const events = recognizer.update(input);
 
-      let pointerPos: { x: number; y: number } | null = null;
-      let pointerActiveThisFrame = false;
-
       for (const event of events) {
-        if (event.name === 'go-forward' && event.output.triggered) {
+        if (event.name === 'go-forward') {
           console.log('[Gesture] GO_FORWARD');
         }
-        if (event.name === 'go-back' && event.output.triggered) {
+        if (event.name === 'go-back') {
           console.log('[Gesture] GO_BACK');
         }
-        if (event.name === 'pointer' && event.output.position) {
-          pointerActiveThisFrame = true;
-          pointerPos = event.output.position;
-          if (recognizer.getState('pointer') === 'drawing_active') {
-            const cp = canvasPoint(pointerPos);
-            if (currentStroke === null) currentStroke = [];
-            currentStroke.push(cp);
-          }
-        }
-        if (event.name === 'zoom' && event.output.triggered) {
+        if (event.name === 'zoom') {
           console.log('[Gesture] ZOOM — factor:', event.output.value);
         }
       }
 
-      if (!pointerActiveThisFrame && currentStroke !== null) {
+      // Pointer position is continuous stream data, not a discrete trigger —
+      // poll it via getOutput() rather than looking for it in events.
+      const pointerPos = recognizer.getOutput('pointer')?.position ?? null;
+
+      if (pointerPos !== null && recognizer.getState('pointer') === 'drawing_active') {
+        const cp = canvasPoint(pointerPos);
+        if (currentStroke === null) currentStroke = [];
+        currentStroke.push(cp);
+      } else if (pointerPos === null && currentStroke !== null) {
         if (currentStroke.length > 1) strokes.push(currentStroke);
         currentStroke = null;
       }

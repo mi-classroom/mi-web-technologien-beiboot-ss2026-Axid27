@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Daily Gesture</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1 class="site-title">The Daily Gesture</h1>
+    <nav class="site-nav" aria-label="Hauptnavigation">
+      <a href="#">Home</a>
+      <a href="#">Technologie</a>
+      <a href="#">Kultur</a>
+    </nav>
+  </header>
+
+  <main class="article-grid">
+    <article class="card">
+      <img src="assets/placeholder-1.svg" alt="Nahaufnahme einer Hand, die eine Geste vor einer Webcam formt" />
+      <span class="card-category">Technologie</span>
+      <h2>Gestensteuerung erobert den Alltag</h2>
+      <p>
+        Immer mehr Anwendungen setzen auf berührungslose Steuerung per Handgeste.
+        Was vor wenigen Jahren noch Science-Fiction war, läuft heute direkt im
+        Browser. Wir werfen einen Blick auf die Technik dahinter.
+      </p>
+      <button type="button" class="btn-read-more">Weiterlesen</button>
+    </article>
+
+    <article class="card">
+      <img src="assets/placeholder-2.svg" alt="Abstrakte Visualisierung eines neuronalen Netzes" />
+      <span class="card-category">Technologie</span>
+      <h2>Browser-KI: Was Webcams heute erkennen können</h2>
+      <p>
+        Moderne Machine-Learning-Modelle laufen vollständig client-seitig und
+        erkennen Körperhaltung, Hände und Gesichter in Echtzeit. Kein Server,
+        keine Cloud — nur der Browser und die Webcam.
+      </p>
+      <button type="button" class="btn-read-more">Weiterlesen</button>
+    </article>
+
+    <article class="card">
+      <img src="assets/placeholder-3.svg" alt="Illustration einer Person, die vor einem großen Bildschirm interagiert" />
+      <span class="card-category">Kultur</span>
+      <h2>Wie neue Interfaces unsere Kultur verändern</h2>
+      <p>
+        Von der Tastatur zur Geste: Jede neue Eingabemethode verändert nicht nur
+        wie wir mit Technik umgehen, sondern auch wie wir miteinander
+        kommunizieren. Ein Blick auf die kulturelle Dimension der Interaktion.
+      </p>
+      <button type="button" class="btn-read-more">Weiterlesen</button>
+    </article>
+
+    <article class="card">
+      <img src="assets/placeholder-4.svg" alt="Bühnenszene mit projizierten digitalen Lichteffekten" />
+      <span class="card-category">Kultur</span>
+      <h2>Zwischen Bildschirm und Bühne: Digitale Kunstformen</h2>
+      <p>
+        Künstlerinnen und Künstler experimentieren zunehmend mit
+        Gestensteuerung als kreatives Werkzeug. Wir sprechen mit Kreativen
+        über neue Ausdrucksformen jenseits von Maus und Tastatur.
+      </p>
+      <button type="button" class="btn-read-more">Weiterlesen</button>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 The Daily Gesture. Alle Rechte vorbehalten.</p>
+  </footer>
+
+  <div id="gesture-cursor" aria-hidden="true"></div>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>

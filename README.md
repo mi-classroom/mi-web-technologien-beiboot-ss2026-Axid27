@@ -19,7 +19,8 @@ This project is part of the accompanying project work for the Web Technologien m
 ## Project Structure
 
 ```
-body-tracking/   Vite + TypeScript browser app
+body-tracking/   Vite + TypeScript browser app, home of the Gesture Library (src/lib/)
+news-app/        Standalone news demo app, controlled via the Gesture Library (see news-app/README.md)
 docs/
   adr/           Architecture Decision Records
   observations/  Field notes on ML behavior
@@ -45,6 +46,15 @@ npm run build
 ```
 
 Output goes to `body-tracking/dist/`.
+
+## News App Demo (Issue #4)
+
+`news-app/` is a standalone news page controlled entirely via the Gesture
+Library's public API — a real-world consumer used to stress-test the
+library's API design. See [`news-app/README.md`](news-app/README.md) for
+setup and supported gestures, and
+[ADR-06](docs/adr/ADR-06-api-reflection-issue4.md) for the API findings
+from that integration.
 
 ## Environment Variables
 
