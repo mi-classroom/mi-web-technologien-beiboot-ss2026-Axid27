@@ -12,14 +12,21 @@ recognizer.register('scroll',  new ScrollGesture());
 recognizer.register('toggle',  new ToggleGesture());
 
 const cursor = document.getElementById('gesture-cursor');
+const gestureStatus = document.getElementById('gesture-status');
+const gestureStatusLabel = document.getElementById('gesture-status-label');
+const toggleProgress = document.getElementById('toggle-progress');
+const TOGGLE_PROGRESS_MAX_WIDTH = 160; // px, matches #toggle-progress max-width in style.css
 
 // Gesture control start state: active. Toggled via the ToggleGesture
 // (both hands open, held 2s).
 let gestureActive = true;
 
-// Full status UI (dot/label/flash) is implemented in Ticket 5.
 function updateToggleUI(active) {
-  console.log('[news-app] gestureActive:', active);
+  gestureStatus.classList.toggle('gesture-inactive', !active);
+  gestureStatusLabel.textContent = active ? 'Gestensteuerung aktiv' : 'Gestensteuerung pausiert';
+  gestureStatus.classList.remove('gesture-flash');
+  void gestureStatus.offsetWidth; // reflow so the animation restarts on repeated toggles
+  gestureStatus.classList.add('gesture-flash');
 }
 
 // go-forward/go-back were removed in Issue #5 (Ticket 4) — focus now comes
@@ -29,6 +36,18 @@ function activateFocused() {
   const el = document.activeElement;
   if (el && el !== document.body) el.click();
 }
+
+// "Mehr lesen" cards: toggling aria-expanded/hidden works for both mouse
+// clicks and the OK gesture, since activateFocused() also just calls
+// element.click() on whatever has focus.
+document.querySelectorAll('.read-more-btn').forEach((btn) => {
+  const content = btn.nextElementSibling;
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+    content.hidden = expanded;
+  });
+});
 
 async function initModels() {
   const vision = await FilesetResolver.forVisionTasks(
@@ -135,10 +154,18 @@ async function run() {
         window.scrollBy(0, scrollOutput.value * scrollSpeed);
       }
 
-      // Toggle progress: recognizer.getOutput('toggle') already returns
-      // { triggered: false, value: progress } during the toggle_armed hold,
-      // since lastOutputs is updated every frame regardless of the
-      // triggered flag. Progress-bar UI wiring lands in Ticket 5.
+      // Toggle progress bar: getState() only reports the state string, not
+      // the hold progress. Pragmatic choice (documented here rather than
+      // adding a getProgress() getter to the library): getOutput('toggle')
+      // already carries { value: progress } while toggle_armed, because
+      // GestureRecognizer stores every gesture's last output unconditionally
+      // (see GestureRecognizer.update()), not only when triggered === true.
+      const toggleOutput = recognizer.getOutput('toggle');
+      const toggleProgressValue =
+        recognizer.getState('toggle') === 'toggle_armed' && toggleOutput?.value !== undefined
+          ? toggleOutput.value
+          : 0;
+      toggleProgress.style.width = `${toggleProgressValue * TOGGLE_PROGRESS_MAX_WIDTH}px`;
 
       // Pointer position is continuous stream data, not a discrete trigger —
       // poll it via getOutput() rather than looking for it in events.

@@ -12,6 +12,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -62,13 +66,49 @@ button {
   color: var(--accent);
 }
 
+#anchor-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 2rem;
+  background: var(--bg);
+  border-bottom: 1px solid #2a2e35;
+}
+
+#anchor-nav a {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+#anchor-nav a:hover {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem 2rem;
+}
+
+main section {
+  scroll-margin-top: 4.5rem; /* offset for the sticky anchor nav */
+}
+
+.section-title {
+  font-size: 1.3rem;
+  margin: 2rem 0 1rem;
+}
+
 .article-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .card {
@@ -107,7 +147,7 @@ button {
   flex-grow: 1;
 }
 
-.btn-read-more {
+.read-more-btn {
   margin: 1rem;
   align-self: flex-start;
   padding: 0.5rem 1rem;
@@ -119,8 +159,18 @@ button {
   cursor: pointer;
 }
 
-.btn-read-more:hover {
+.read-more-btn:hover {
   filter: brightness(1.1);
+}
+
+.read-more-content {
+  margin: 0 1rem 1rem;
+}
+
+.read-more-content p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .site-footer {
@@ -142,5 +192,57 @@ button {
   transform: translate(-50%, -50%);
   transition: opacity 0.2s;
   opacity: 0;
+  z-index: 9999;
+}
+
+#gesture-status {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  z-index: 9999;
+  transition: opacity 0.3s;
+}
+
+#gesture-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00e676;
+}
+
+.gesture-inactive #gesture-status-dot {
+  background: #666;
+}
+
+.gesture-flash {
+  animation: flash 0.4s ease-out;
+}
+
+@keyframes flash {
+  0%   { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* toggle-progress uses a pixel width (set via JS, see app.js) rather than a
+   percentage: as a position:fixed element with no sizing ancestor, a
+   percentage width would resolve against the viewport, not the status
+   badge above it. */
+#toggle-progress {
+  position: fixed;
+  top: 3.4rem;
+  right: 1rem;
+  width: 0;
+  max-width: 160px;
+  height: 3px;
+  background: #00e676;
+  border-radius: 2px;
+  transition: none;
   z-index: 9999;
 }
