@@ -29,12 +29,24 @@ function updateToggleUI(active) {
   gestureStatus.classList.add('gesture-flash');
 }
 
+function getTabbable() {
+  return Array.from(document.querySelectorAll('a, button, [tabindex="0"]'));
+}
+
 // go-forward/go-back were removed in Issue #5 (Ticket 4) — focus now comes
-// from native keyboard/mouse interaction; the OK gesture only confirms
-// whatever currently has focus.
+// from native keyboard/mouse interaction; the OK gesture confirms whatever
+// currently has focus, or focuses the first tabbable element if nothing is
+// focused yet (e.g. right after page load, before any Tab/click).
 function activateFocused() {
-  const el = document.activeElement;
-  if (el && el !== document.body) el.click();
+  const active = document.activeElement;
+
+  if (!active || active === document.body) {
+    const tabbable = getTabbable();
+    if (tabbable.length > 0) tabbable[0].focus();
+    return;
+  }
+
+  active.click();
 }
 
 // "Mehr lesen" cards: toggling aria-expanded/hidden works for both mouse
@@ -151,7 +163,12 @@ async function run() {
       const scrollOutput = recognizer.getOutput('scroll');
       if (gestureActive && scrollOutput?.value !== undefined && scrollOutput.value !== 0) {
         const scrollSpeed = 8; // pixels per frame — tune after testing
-        window.scrollBy(0, scrollOutput.value * scrollSpeed);
+        // behavior: 'instant' is required here — without it, scrollBy()
+        // inherits the global `html { scroll-behavior: smooth }` (added for
+        // anchor-nav jumps), and calling it every frame queues/interrupts
+        // overlapping smooth-scroll animations, which looked like scrolling
+        // only worked in one direction.
+        window.scrollBy({ top: scrollOutput.value * scrollSpeed, left: 0, behavior: 'instant' });
       }
 
       // Toggle progress bar: getState() only reports the state string, not
