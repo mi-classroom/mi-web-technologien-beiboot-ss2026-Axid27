@@ -44,6 +44,18 @@ i.d.R. `http://localhost:5173`). Kamerazugriff muss erlaubt werden.
   MediaPipe generell (siehe [ADR-01-Beobachtungen](../docs/observations/ADR-01-observations.md)).
 - Es wird nur eine Person gleichzeitig unterstützt.
 
+## Deployment
+
+Deployed via Vercel mit `@vercel/static-build` (Option A, siehe
+`vercel.json` im Repo-Root). `news-app/` hat bereits ein eigenes
+Vite-Setup mit `npm run build` — Vite bündelt die per Cross-Folder-Import
+eingebundene Gesture Library (`../body-tracking/src/lib/...`) beim Build
+vollständig in `news-app/dist/` mit ein (verifiziert: keine
+Laufzeit-Referenzen auf `body-tracking/` im Output). Ein Kopieren der
+Library-Dateien nach `news-app/lib/` (Option B) war daher nicht nötig —
+das hätte nur eine zweite, unabhängig zu pflegende Kopie der Gesten
+geschaffen.
+
 ## Accessibility-Kontext
 
 Diese App ist eine Demo für **freihändige, berührungslose Navigation**
