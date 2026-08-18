@@ -42,3 +42,19 @@ Anpassungen in allen registrierten Gesten.
   2D-Landmark-basierten Erkennung ohne Tiefendaten.
 - Der TOUCH_THRESHOLD für die ZoomGesture (OK-Form) ist abhängig vom
   Kameraabstand und muss ggf. kalibriert werden.
+
+## Update Issue #5 — Gesten-Tuning und Handaufteilung
+
+Im Verlauf von Issue #5 wurde die Handaufteilung grundlegend
+überarbeitet. Die ursprüngliche Architektur sah keine feste
+Zuweisung von Gesten zu Händen vor — jede Geste definierte
+selbst welche Hand(landmark)daten sie nutzt.
+
+In Issue #5 wurde eine explizite Konvention eingeführt:
+  Rechte Hand → Pointer/Cursor (zeigen)
+  Linke Hand  → Aktionsgesten (handeln)
+
+Diese Konvention ist nicht in der Library erzwungen, sondern
+eine Anwendungsentscheidung der News-App. Die Library bleibt
+hand-agnostisch — sie liefert leftHand und rightHand im
+GestureInput, jede Geste entscheidet selbst.
