@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Daily Gesture</title>
+  <script type="module" crossorigin src="/mi-web-technologien-beiboot-ss2026-Axid27/assets/index-HskLR0Me.js"></script>
+  <link rel="stylesheet" crossorigin href="/mi-web-technologien-beiboot-ss2026-Axid27/assets/index-ByL_dfEl.css">
+</head>
+<body>
+  <div id="gesture-status" aria-live="polite">
+    <span id="gesture-status-dot"></span>
+    <span id="gesture-status-label">Gestensteuerung aktiv</span>
+  </div>
+  <div id="toggle-progress"></div>
+
+  <header class="site-header">
+    <h1 class="site-title">The Daily Gesture</h1>
+    <nav class="site-nav" aria-label="Hauptnavigation">
+      <a href="#">Home</a>
+      <a href="#">Technologie</a>
+      <a href="#">Kultur</a>
+    </nav>
+  </header>
+
+  <nav id="anchor-nav" aria-label="Ressorts">
+    <a href="#section-tech">Technologie</a>
+    <a href="#section-kultur">Kultur</a>
+    <a href="#section-sport">Sport</a>
+  </nav>
+
+  <main>
+    <section id="section-tech">
+      <h2 class="section-title">Technologie</h2>
+      <div class="article-grid">
+        <article class="card">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCI+CiAgPHJlY3Qgd2lkdGg9IjY0MCIgaGVpZ2h0PSIzNjAiIGZpbGw9IiMyYjNhNTUiLz4KICA8dGV4dCB4PSIzMjAiIHk9IjE4OCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iIzlmYzRmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+R2VzdGVuc3RldWVydW5nPC90ZXh0Pgo8L3N2Zz4K" alt="Nahaufnahme einer Hand, die eine Geste vor einer Webcam formt" />
+          <span class="card-category">Technologie</span>
+          <h2>Gestensteuerung erobert den Alltag</h2>
+          <p>
+            Immer mehr Anwendungen setzen auf berührungslose Steuerung per Handgeste.
+            Was vor wenigen Jahren noch Science-Fiction war, läuft heute direkt im
+            Browser. Wir werfen einen Blick auf die Technik dahinter.
+          </p>
+          <button type="button" class="read-more-btn" aria-expanded="false">Mehr lesen</button>
+          <div class="read-more-content" hidden>
+            <p>
+              Möglich macht das In-Browser-Machine-Learning: Modelle wie MediaPipe
+              laufen vollständig auf dem Gerät der Nutzer:innen, ohne dass Bilddaten
+              einen Server erreichen. Das senkt die Latenz auf wenige Millisekunden
+              und macht Gestensteuerung erstmals auch für alltägliche Webseiten
+              praktikabel — von Nachrichtenportalen bis zu Präsentationstools.
+            </p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCI+CiAgPHJlY3Qgd2lkdGg9IjY0MCIgaGVpZ2h0PSIzNjAiIGZpbGw9IiMyMTNhM2EiLz4KICA8dGV4dCB4PSIzMjAiIHk9IjE4OCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iIzhmZTNkMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QnJvd3Nlci1LSTwvdGV4dD4KPC9zdmc+Cg==" alt="Abstrakte Visualisierung eines neuronalen Netzes" />
+          <span class="card-category">Technologie</span>
+          <h2>Browser-KI: Was Webcams heute erkennen können</h2>
+          <p>
+            Moderne Machine-Learning-Modelle laufen vollständig client-seitig und
+            erkennen Körperhaltung, Hände und Gesichter in Echtzeit. Kein Server,
+            keine Cloud — nur der Browser und die Webcam.
+          </p>
+          <button type="button" class="read-more-btn" aria-expanded="false">Mehr lesen</button>
+          <div class="read-more-content" hidden>
+            <p>
+              Die Modelle erkennen bis zu 21 Landmarken pro Hand und 33 Punkte am
+              Körper — genug, um Fingerstellungen, Armhaltungen und einfache Gesten
+              zuverlässig zu unterscheiden. Die größte Herausforderung bleibt die
+              Robustheit bei schlechtem Licht oder ungewöhnlichen Kamerawinkeln.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="section-kultur">
+      <h2 class="section-title">Kultur</h2>
+      <div class="article-grid">
+        <article class="card">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCI+CiAgPHJlY3Qgd2lkdGg9IjY0MCIgaGVpZ2h0PSIzNjAiIGZpbGw9IiMzYTJiNGEiLz4KICA8dGV4dCB4PSIzMjAiIHk9IjE4OCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iI2QzYWFmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TmV1ZSBJbnRlcmZhY2VzPC90ZXh0Pgo8L3N2Zz4K" alt="Illustration einer Person, die vor einem großen Bildschirm interagiert" />
+          <span class="card-category">Kultur</span>
+          <h2>Wie neue Interfaces unsere Kultur verändern</h2>
+          <p>
+            Von der Tastatur zur Geste: Jede neue Eingabemethode verändert nicht nur
+            wie wir mit Technik umgehen, sondern auch wie wir miteinander
+            kommunizieren. Ein Blick auf die kulturelle Dimension der Interaktion.
+          </p>
+          <button type="button" class="read-more-btn" aria-expanded="false">Mehr lesen</button>
+          <div class="read-more-content" hidden>
+            <p>
+              Historisch ging jedem Wechsel des Eingabeparadigmas — Maus, Touch,
+              Sprache — eine Phase der Skepsis voraus, gefolgt von einer stillen
+              Normalisierung. Gestensteuerung steht heute an einem ähnlichen Punkt:
+              noch ungewohnt, aber mit klaren Vorteilen für Barrierefreiheit und
+              hygienische, berührungslose Bedienung im öffentlichen Raum.
+            </p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCI+CiAgPHJlY3Qgd2lkdGg9IjY0MCIgaGVpZ2h0PSIzNjAiIGZpbGw9IiM0YTJiMmYiLz4KICA8dGV4dCB4PSIzMjAiIHk9IjE4OCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iI2ZmYjBiOCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGlnaXRhbGUgS3Vuc3Q8L3RleHQ+Cjwvc3ZnPgo=" alt="Bühnenszene mit projizierten digitalen Lichteffekten" />
+          <span class="card-category">Kultur</span>
+          <h2>Zwischen Bildschirm und Bühne: Digitale Kunstformen</h2>
+          <p>
+            Künstlerinnen und Künstler experimentieren zunehmend mit
+            Gestensteuerung als kreatives Werkzeug. Wir sprechen mit Kreativen
+            über neue Ausdrucksformen jenseits von Maus und Tastatur.
+          </p>
+          <button type="button" class="read-more-btn" aria-expanded="false">Mehr lesen</button>
+          <div class="read-more-content" hidden>
+            <p>
+              Ob interaktive Installationen, die auf Publikumsbewegungen reagieren,
+              oder Live-Performances, bei denen Musik per Handgeste moduliert wird —
+              die Grenze zwischen Publikum und Werk verschwimmt zunehmend. Für viele
+              Kunstschaffende ist das Fehlen physischer Controller dabei kein
+              Nachteil, sondern Teil der künstlerischen Aussage.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="section-sport">
+      <h2 class="section-title">Sport</h2>
+      <div class="article-grid">
+        <article class="card">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCI+CiAgPHJlY3Qgd2lkdGg9IjY0MCIgaGVpZ2h0PSIzNjAiIGZpbGw9IiMxZjNhMmIiLz4KICA8dGV4dCB4PSIzMjAiIHk9IjE4OCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iIzhkZTNhOCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+V2VhcmFibGVzIGltIFNwb3J0PC90ZXh0Pgo8L3N2Zz4K" alt="Sportler mit am Körper getragenen Sensoren beim Training" />
+          <span class="card-category">Sport</span>
+          <h2>Wearables im Spitzensport: Wenn Sensoren mitspielen</h2>
+          <p>
+            Bewegungssensoren liefern Trainerteams heute Echtzeitdaten zu Tempo,
+            Belastung und Technik. Wir zeigen, wie dieselbe Landmark-Erkennung, die
+            Gestensteuerung ermöglicht, auch im Leistungssport Einzug hält.
+          </p>
+          <button type="button" class="read-more-btn" aria-expanded="false">Mehr lesen</button>
+          <div class="read-more-content" hidden>
+            <p>
+              Statt zusätzlicher Hardware setzen erste Vereine auf reine
+              Kamera-Analyse: Pose-Landmarker werten Trainingsvideos automatisch aus
+              und markieren Auffälligkeiten in der Lauftechnik. Der Vorteil
+              gegenüber klassischen Wearables — keine zusätzliche Ausrüstung am
+              Körper der Athlet:innen.
+            </p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiB2aWV3Qm94PSIwIDAgNjQwIDM2MCI+CiAgPHJlY3Qgd2lkdGg9IjY0MCIgaGVpZ2h0PSIzNjAiIGZpbGw9IiMzYTMzMWYiLz4KICA8dGV4dCB4PSIzMjAiIHk9IjE4OCIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iI2UzYzg4ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RS1TcG9ydCAmYW1wOyBHZXN0aWs8L3RleHQ+Cjwvc3ZnPgo=" alt="Person spielt ein Videospiel mit Gestensteuerung statt Controller" />
+          <span class="card-category">Sport</span>
+          <h2>E-Sport trifft Bewegungssteuerung: Gestik statt Controller</h2>
+          <p>
+            Erste E-Sport-Turniere experimentieren mit gestenbasierter Steuerung als
+            zugängliche Alternative zu klassischen Controllern. Wir ordnen ein, wie
+            realistisch das für den kompetitiven Einsatz ist.
+          </p>
+          <button type="button" class="read-more-btn" aria-expanded="false">Mehr lesen</button>
+          <div class="read-more-content" hidden>
+            <p>
+              Für kompetitives Gaming ist die Latenz von Kamera-basierten Gesten
+              aktuell noch ein limitierender Faktor gegenüber physischen Controllern.
+              Im Bereich Accessibility-Gaming und bei Showmatches ist die Technik
+              jedoch bereits heute im Einsatz — als zusätzliche, nicht als
+              ersetzende Eingabemethode.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 The Daily Gesture. Alle Rechte vorbehalten.</p>
+  </footer>
+
+  <div id="gesture-cursor" aria-hidden="true"></div>
+
+</body>
+</html>
