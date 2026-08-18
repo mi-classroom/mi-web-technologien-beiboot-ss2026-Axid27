@@ -1,10 +1,13 @@
 # The Daily Gesture — News App
 
-Eine eigenständige News-Demoseite. Sie dient als Testanwendung für die
-Gesture Library aus `body-tracking/src/lib/` (Issue #4) — die Seite
+Eine eigenständige News-Demoseite, ausschließlich per Handgesten
+navigierbar. Ursprünglich als reine Testanwendung für die Gesture
+Library aus `body-tracking/src/lib/` gestartet (Issue #4), seit Issue #5
+zu einer vollständigen Gesten-Navigations-Demo ausgebaut (siehe
+[ADR-07](../docs/adr/ADR-07-issue5-vision-app-decision.md)). Die Seite
 selbst enthält keine Gesten-Erkennungslogik, sondern konsumiert nur die
-öffentlichen Exporte der Library (`GestureRecognizer`, `PistolGesture`,
-`PistolGestureLeft`, `PointerGesture`, `ZoomGesture`).
+öffentlichen Exporte der Library: `GestureRecognizer`, `PointerGesture`,
+`ZoomGesture`, `ScrollGesture`, `ToggleGesture`.
 
 ## Starten
 
@@ -25,24 +28,32 @@ i.d.R. `http://localhost:5173`). Kamerazugriff muss erlaubt werden.
 
 ## Unterstützte Gesten
 
-| Geste | Ausführung | Wirkung |
-| --- | --- | --- |
-| **Go Forward** | Rechte Hand: Pistolen-Geste (Daumen hoch, Zeigefinger gestreckt), dann Zeigefinger einknicken | Fokus springt zum nächsten fokussierbaren Element (wie Tab) |
-| **Go Back** | Linke Hand: Daumen + Zeigefinger gestreckt, restliche Finger angewinkelt, dann Zeigefinger einknicken | Fokus springt zum vorherigen fokussierbaren Element (wie Shift+Tab) |
-| **Zoom / OK** | Linke Hand: Daumen-Tip und Zeigefinger-Tip berühren sich, restliche Finger gestreckt (OK-Zeichen), ca. 400ms halten | Aktiviert das aktuell fokussierte Element (Klick) |
-| **Pointer** | Beide Hände: nur Zeigefinger gestreckt | Zeigt einen visuellen Cursor, der der rechten Hand folgt |
+| Geste | Hand | Ausführung | Wirkung |
+| --- | --- | --- | --- |
+| **Pointer** | Rechts | Nur Zeigefinger gestreckt, restliche Finger angewinkelt | Bewegt einen visuellen Cursor; fokussiert programmatisch das Element unter dem Cursor (Point-to-select) |
+| **OK / Klick** | Links | Daumen-Tip und Zeigefinger-Tip berühren sich (Pinch) | Aktiviert das aktuell fokussierte Element (Klick) |
+| **Scroll** | Links | Offene Hand (alle fünf Finger gestreckt); y-Position relativ zur Bildmitte bestimmt Richtung/Geschwindigkeit | Scrollt die Seite (Joystick-Metapher) |
+| **Toggle** | Beide | Beide Hände offen, 2 Sekunden halten | Schaltet die Gestensteuerung an/aus (Statusanzeige oben rechts) |
+
+`PistolGesture`/`PistolGestureLeft` (Tab-artige Fokus-Navigation aus
+Issue #3/#4) wurden für diese App bewusst nicht registriert — Scroll +
+Anchor-Navigation ersetzen sie, siehe ADR-07. Die Klassen bleiben in der
+Library für andere Anwendungsfälle erhalten.
 
 ## Bekannte Einschränkungen
 
 - Hände sollten frontal zur Kamera gehalten werden — seitlich gehaltene
   Hände verändern die y-Achsen-Verhältnisse der Landmarks, wodurch die
   Extended-Heuristiken der Library falsch feuern oder ausfallen können.
-- Der `TOUCH_THRESHOLD` der Zoom-Geste ist auf einen mittleren
+- Der `TOUCH_THRESHOLD` der Klick-Geste (Pinch) ist auf einen mittleren
   Kameraabstand kalibriert und kann bei sehr naher oder sehr weiter
   Distanz zur Kamera ungenau werden.
 - Schlechte Lichtverhältnisse verschlechtern die Erkennungsqualität von
   MediaPipe generell (siehe [ADR-01-Beobachtungen](../docs/observations/ADR-01-observations.md)).
 - Es wird nur eine Person gleichzeitig unterstützt.
+- Drag-Interaktionen (z. B. Slider) sind mit dem aktuellen
+  Trigger-/Stream-basierten Gestensystem nicht umsetzbar — es gibt kein
+  "halten während Bewegung" (siehe ADR-07).
 
 ## Deployment
 
@@ -58,12 +69,25 @@ geschaffen.
 
 ## Accessibility-Kontext
 
-Diese App ist eine Demo für **freihändige, berührungslose Navigation**
-als alternative Eingabemethode — gedacht für Szenarien, in denen Maus
-und Tastatur unpraktisch oder nicht nutzbar sind, z. B. für Personen mit
-eingeschränkter Feinmotorik, im Kiosk-/Public-Display-Kontext oder bei
-Distanz zum Bildschirm. Die Gesten-Steuerung ist bewusst 1:1 auf die
-Tastatur-Navigation (Tab / Shift+Tab / Aktivieren) abgebildet, damit sie
-sich in bestehende, bereits barrierearme Seitenstrukturen (native `a`,
-`button`, `tabindex="0"`) einfügt, statt eine eigene Interaktionslogik
-zu erfinden.
+Diese App wurde initial als Accessibility-Tool für **freihändige,
+berührungslose Navigation** konzipiert — gedacht für Szenarien, in denen
+Maus und Tastatur unpraktisch oder nicht nutzbar sind, z. B. für
+Personen mit eingeschränkter Feinmotorik, im Kiosk-/Public-Display-
+Kontext oder bei Distanz zum Bildschirm.
+
+Im Verlauf der Implementierung hat sich gezeigt, dass sie treffender als
+**alternative Eingabemodalität** beschrieben wird statt als vollständiges
+Accessibility-Tool (siehe ADR-07): Sie ersetzt klassische
+Peripheriegeräte durch Gestenerkennung, erfüllt aber nicht alle
+Anforderungen an WCAG-Konformität — insbesondere fehlt eine vollständige
+Screenreader-/ARIA-Integration. Die Pointer-Geste fokussiert seit dem
+Point-to-select-Feature bereits Elemente programmatisch
+(`element.focus()`), wodurch native Fokus-Ankündigungen von
+Screenreadern grundsätzlich greifen; eine zusätzliche, gezieltere
+ARIA-Live-Ankündigung ist vorgeschlagen, aber noch offen.
+
+Die Gesten-Steuerung ist bewusst nah an vertrauten Interaktionsmustern
+(Zeigen, Klicken, Scrollen) gehalten, damit sie sich in bestehende,
+bereits barrierearme Seitenstrukturen (native `a`, `button`,
+`tabindex="0"`) einfügt, statt eine eigene Interaktionslogik zu
+erfinden.
