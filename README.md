@@ -10,7 +10,7 @@ Ein browserbasiertes Gesten-Interaktionssystem bestehend aus:
 Akademisches Projekt im Modul Web Technologien, TH Köln SS2026.
 
 ## Live Demo
-[URL hier einfügen — aus Ticket 1]
+https://mi-classroom.github.io/mi-web-technologien-beiboot-ss2026-Axid27/
 
 ## Voraussetzungen
 - Node.js >= 18 (empfohlen: aktuelle LTS-Version)
